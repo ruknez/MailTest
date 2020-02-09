@@ -23,7 +23,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -Wextra -pedantic -Werror")
 
 #target_compile_options(getDataByURL_cli PRIVATE)
 #target_compile_options(getDataByURL PRIVATE)
-
+if(BUILD_TESTS)
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
@@ -46,5 +46,6 @@ target_link_libraries(testGetAPI
 
 target_compile_options(testGetAPI PRIVATE)
 
+endif(BUILD_TESTS)
 # Add a test to the project to be run
-add_test(testGetAPI testGetAPI)
+# add_test(testGetAPI testGetAPI)

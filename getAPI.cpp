@@ -13,10 +13,10 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
-#include <tuple>
+
 #include <exception>
 
-#include "getRequest.h"
+#include "getAPI.h"
 
 using std::cout;
 using std::endl;
@@ -26,7 +26,7 @@ using std::stringstream;
 using std::vector;
 
 //----------------------------------------------------------------------
-auto parsingURL(const std::string &url)
+std::tuple<std::string, std::string, int> parsingURL(const std::string &url)
 {
     int offset = 0;
     int port = 0;
@@ -36,7 +36,8 @@ auto parsingURL(const std::string &url)
     if (url.compare(0, 8, "https://") == 0)
     {
         offset = 8;
-        port = 443;
+        //port = 443;
+        port = 80;
     }
     else if (url.compare(0, 7, "http://") == 0)
     {
@@ -47,6 +48,7 @@ auto parsingURL(const std::string &url)
     {
         throw std::invalid_argument("Not correct URL = \"" + url + "\" \n");
     }
+    std::cout << "port = " << port << std::endl;
 
     pos1 = url.find_first_of('/', offset + 1);
     path = pos1 == string::npos ? "" : url.substr(pos1);
@@ -99,8 +101,6 @@ vector<string> dns_lookup(const string &host_name, int ipv) //ipv: default=4
         return output;
     }
 
-    //cout << "DNS Lookup: " << host_name << " ipv:" << ipv << endl;
-
     for (p = res; p != NULL; p = p->ai_next)
     {
         void *addr;
@@ -142,6 +142,7 @@ bool is_ipv4_address(const string &str)
 int socket_connect(const string &ip_address, int port)
 {
     int sd = 0;
+    const int MAXSLEEP = 128;
     struct sockaddr_in sa;
 
     memset(&sa, '\0', sizeof(sa));
@@ -150,28 +151,31 @@ int socket_connect(const string &ip_address, int port)
     sa.sin_addr.s_addr = inet_addr(ip_address.c_str());
     sa.sin_port = htons(port);
 
-    sd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sd)
+    for (int numsec = 1; numsec <= MAXSLEEP; numsec <<= 1)
     {
-        if (connect(sd, (struct sockaddr *)&sa, sizeof(sa)) == -1)
+        if ((sd  = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
-            close(sd);
-            throw std::runtime_error("Cannot connect for ip = " + ip_address + "\n");
+             throw std::runtime_error("Cannot creat socket for ip = " + ip_address + "\n");
         }
+        if (connect(sd, (struct sockaddr *)&sa, sizeof(sa)) == 0)
+        {
+            return sd;
+        }
+        close(sd);
+        if (numsec <= MAXSLEEP/2)
+            sleep(numsec);
     }
-    else
-    {
-        throw std::runtime_error("Cannot creat socket for ip = " + ip_address + "\n");
-    }
-    return sd;
+    throw std::runtime_error("Cannot connect for ip = " + ip_address + "\n");
 }
 //----------------------------------------------------------------------
-void download(const string &url, const string &filename)
+void download(const string &url)
 {
     int ipv = 0;
     vector<string> ip_addresses;
 
     auto [path, domain, port] = parsingURL(url);
+
+    std::string filename = creatFileName(path);
 
     if (!is_ipv6_address(domain))
     {
@@ -228,6 +232,7 @@ string header_value(const string &full_header, const string &header_name)
     }
     return r;
 }
+
 //----------------------------------------------------------------------
 int64_t http_get(const string &request, const string &ip_address, int port, const string &fname)
 {
@@ -258,16 +263,22 @@ int64_t http_get(const string &request, const string &ip_address, int port, cons
                 state = buffer[i] == delim[state] ? state + 1 : 0;
             }
             bytes_received = state == sizeof(delim) - 1 ? bytes_received - i : bytes_received;
+
             std::cout << "bytes_received = " << bytes_received << std::endl;
             std::cout << "header = " << header.str() << std::endl;
+            if (!isAnswerOk(header.str()))
+            {
+                close(sd);
+                fd.close();
+                throw std::runtime_error("Not OK answer \n" + header.str() + "\n");
+            }
         }
         if (bytes_expected == -1 && state == sizeof(delim) - 1) //parse header
         {
             std::cout << "lolooolo2 \n";
-            string h = header.str();
             try
             {
-                stringstream(header_value(h, "Content-Length")) >> bytes_expected;
+                stringstream(header_value(header.str(), "Content-Length")) >> bytes_expected;
             }
             catch (const std::runtime_error &ex)
             {
@@ -284,4 +295,22 @@ int64_t http_get(const string &request, const string &ip_address, int port, cons
     close(sd);
     fd.close();
     return bytes_sofar;
+}
+
+//----------------------------------------------------------------------
+std::string creatFileName(const std::string &path)
+{
+    auto n = path.rfind("/");
+
+    if (n == std::string::npos || (n + 1 == path.size()))
+    {
+        return "index.html";
+    }
+    return std::string(path.substr(n + 1));
+}
+
+//----------------------------------------------------------------------
+bool isAnswerOk(const std::string &answer)
+{
+    return (answer.find("HTTP/1.1 200 OK") == std::string::npos) ? false : true;
 }

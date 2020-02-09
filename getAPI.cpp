@@ -153,19 +153,19 @@ int socket_connect(const string &ip_address, int port)
 
     for (int numsec = 1; numsec <= MAXSLEEP; numsec <<= 1)
     {
-        if ((sd  = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+        if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
-             throw std::runtime_error("Cannot creat socket for ip = " + ip_address + "\n");
+            throw std::runtime_error("Cannot creat socket for ip = " + ip_address + "\nerrno code = " + strerror(errno) + "\n");
         }
         if (connect(sd, (struct sockaddr *)&sa, sizeof(sa)) == 0)
         {
             return sd;
         }
         close(sd);
-        if (numsec <= MAXSLEEP/2)
+        if (numsec <= MAXSLEEP / 2)
             sleep(numsec);
     }
-    throw std::runtime_error("Cannot connect for ip = " + ip_address + "\n");
+    throw std::runtime_error("Cannot connect for ip = " + ip_address + "\nerrno code = " + strerror(errno) + "\n");
 }
 //----------------------------------------------------------------------
 void download(const string &url)

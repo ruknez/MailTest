@@ -16,4 +16,3 @@ deploy:
   skip_cleanup: true
   script:
   - curl -T GetDataByURL-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb -uruknez:$BINTRAY_API_KEY "https://api.bintray.com/content/ruknez/MailTestTask/Get/$TRAVIS_BUILD_NUMBER/GetDataByURL-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb;deb_distribution=trusty;deb_component=main;deb_architecture=amd64;publish=1"
-

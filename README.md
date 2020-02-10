@@ -11,8 +11,15 @@
 
 Пример запуска сборки:  bash startAssembly.sh -DCMAKE_CXX_COMPILER:STRING=/usr/bin/g++-8 -DBUILD_TESTS=ON
 
-Также в проек интегрирована порадигма CI/CD
+Также в проект интегрирована парадигма CI/CD
 Успешные сборки: https://travis-ci.org/ruknez/MailTest/builds
 Результат сборки: https://bintray.com/ruknez/MailTestTask/Get#files
+
+Програмное средство тестировалось на следующих URL
+
+https://download.geofabrik.de/russia/central-fed-district-latest.osm.pbf
+http://code.jquery.com/jquery-1.11.1.js
+https://download.geofabrik.de/russia.html
+http://bbgentoo.ilb.ru/distfiles/google-chrome-stable_48.0.2564.116-1_i386.deb
 
 

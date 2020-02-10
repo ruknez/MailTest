@@ -21,7 +21,6 @@ int main(int args, char **argv)
         //download("http://code.jquery.com/jquery-1.11.1.js");
         // download ("https://download.geofabrik.de/russia.html");
         // download("http://bbgentoo.ilb.ru/distfiles/google-chrome-stable_48.0.2564.116-1_i386.deb");
-        // download("http://google.com");
     }
     catch (const std::invalid_argument &ex)
     {

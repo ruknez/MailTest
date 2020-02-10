@@ -15,7 +15,9 @@ set_target_properties(getDataByURL_cli getDataByURL PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
-target_link_libraries(getDataByURL_cli PRIVATE
+target_link_libraries(getDataByURL  stdc++fs)
+
+target_link_libraries(getDataByURL_cli
     getDataByURL
 )
 

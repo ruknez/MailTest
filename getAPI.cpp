@@ -10,27 +10,24 @@
 
 #include <string>
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <sstream>
-
+#include <fstream>
+#include <filesystem>
 #include <exception>
 
 #include "getAPI.h"
 
-using std::cout;
-using std::endl;
 using std::ofstream;
-using std::string;
 using std::stringstream;
-using std::vector;
+using std::string;
 
 //----------------------------------------------------------------------
 std::tuple<std::string, std::string, int> parsingURL(const std::string &url)
 {
     int offset = 0;
     int port = 0;
-    size_t pos1, pos2, pos3, pos4;
+    size_t pos1 = 0, pos2 = 0, pos3 = 0, pos4 =0;
     string protocol, domain, path, query;
 
     if (url.compare(0, 8, "https://") == 0)
@@ -75,12 +72,12 @@ std::tuple<std::string, std::string, int> parsingURL(const std::string &url)
 }
 
 //----------------------------------------------------------------------
-vector<string> dns_lookup(const string &host_name, int ipv) //ipv: default=4
+std::vector<string> dns_lookup(const string &host_name, int ipv) //ipv: default=4
 {
-    vector<string> output;
+    std::vector<string> output;
 
     struct addrinfo hints, *res, *p;
-    int status, ai_family;
+    int status = 0, ai_family = 0;
     char ip_address[INET6_ADDRSTRLEN];
 
     ai_family = ipv == 6 ? AF_INET6 : AF_INET;    //v4 vs v6?
@@ -162,7 +159,7 @@ int socket_connect(const string &ip_address, int port)
 void download(const string &url)
 {
     int ipv = 0;
-    vector<string> ip_addresses;
+    std::vector<string> ip_addresses;
 
     auto [path, domain, port] = parsingURL(url);
 
@@ -197,6 +194,15 @@ void download(const string &url)
             {
                 std::cerr << ex.what() << std::endl;
             }
+        }
+        std::filesystem::path filePath = std::filesystem::current_path() / filename;
+        if (std::filesystem::file_size(filePath) == static_cast<uintmax_t>(readData))
+        {
+            std::cout << "Done. OK\n";
+        }
+        else
+        {
+            std::cout << "Done. File size Not Ok\n";
         }
     }
     else

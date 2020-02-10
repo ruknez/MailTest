@@ -42,6 +42,8 @@ bool is_ipv4_address(const std::string &str);
     \param ip_address - IP адрес
     \param port  - порт
     \return сокет с установленным подключением
+    \throw std::runtime_error - если не может создать сокет
+    \throw std::invalid_argument - если не может произвести коннект
 */
 int socket_connect(const std::string &ip_address, int port);
 
@@ -57,6 +59,7 @@ void download(const std::string &url);
 
     \param url - URL
     \return относительный пусть на хосте, доменное имя,  порт обычно = 80
+    \throw std::runtime_error - не удалось определить ни одного IP  адреса
 */
 std::tuple<std::string, std::string, int> parsingURL(const std::string &url);
 
@@ -66,6 +69,7 @@ std::tuple<std::string, std::string, int> parsingURL(const std::string &url);
     \param full_header - Полный ответ от сервера
     \param header_name - ключевое слово в ответе сервера
     \return размер заголовка
+    \throw std::runtime_error - нет необходимых данных в заголовке ответа
 */
 std::string header_value(const std::string &full_header, const std::string &header_name);
 
@@ -77,6 +81,7 @@ std::string header_value(const std::string &full_header, const std::string &head
     \param port - порт для соединения по TCP
     \param fname - имя файла в который пишутся данные
     \return размер записанных данных в файл
+    \throw std::runtime_error - если не может создать файл или ответ от серера имеет код отличный от 200
 */
 int64_t http_get(const std::string &request, const std::string &ip_address, int port, const std::string &fname);
 

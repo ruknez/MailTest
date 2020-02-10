@@ -1,7 +1,7 @@
 language: cpp
 before_script:
-- sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-- sudo apt-get update
+- sudo add-apt-repository ppa:ubuntu-toolchain-r/test y
+- sudo apt-get update y
 - sudo apt-get install gcc-8 g++-8 y
 - sudo apt-get install libboost-test-dev -y
 - echo "deb http://archive.ubuntu.com/ubuntu xenial main universe" | sudo tee -a /etc/apt/sources.list

@@ -1,10 +1,11 @@
 language: cpp
 before_script:
+- sudo apt-get install g++-8 -y
 - sudo apt-get install libboost-test-dev -y
 - echo "deb http://archive.ubuntu.com/ubuntu xenial main universe" | sudo tee -a /etc/apt/sources.list
 - sudo apt-get update -qq
 script:
-- cmake . -DBUILD_TESTS=ON
+- cmake . -DBUILD_TESTS=ON  -DCMAKE_CXX_COMPILER:STRING=/usr/bin/g++-8
 - cmake --build .
 - cmake --build . --target test
 - cmake --build . --target package

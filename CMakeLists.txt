@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 
 if (DEFINED ENV{TRAVIS_BUILD_NUMBER})
     project(GetDataByURL VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})

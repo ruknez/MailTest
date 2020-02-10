@@ -48,15 +48,11 @@ std::tuple<std::string, std::string, int> parsingURL(const std::string &url)
     {
         throw std::invalid_argument("Not correct URL = \"" + url + "\" \n");
     }
-    std::cout << "port = " << port << std::endl;
 
     pos1 = url.find_first_of('/', offset + 1);
     path = pos1 == string::npos ? "" : url.substr(pos1);
 
     domain = string(url.begin() + offset, pos1 != string::npos ? url.begin() + pos1 : url.end());
-
-    cout << "path = " << path << std::endl;
-    cout << "domain = " << domain << std::endl;
 
     path = (pos2 = path.find("#")) != string::npos ? path.substr(0, pos2) : path;
     string url_port = (pos3 = domain.find(":")) != string::npos ? domain.substr(pos3 + 1) : "";
@@ -64,8 +60,6 @@ std::tuple<std::string, std::string, int> parsingURL(const std::string &url)
     protocol = offset > 0 ? url.substr(0, offset - 3) : "";
     query = (pos4 = path.find("?")) != string::npos ? path.substr(pos4 + 1) : "";
     path = pos4 != string::npos ? path.substr(0, pos4) : path;
-
-    cout << "domain = " << domain << std::endl;
 
     if (query.length() > 0)
     {
@@ -97,7 +91,6 @@ vector<string> dns_lookup(const string &host_name, int ipv) //ipv: default=4
 
     if ((status = getaddrinfo(host_name.c_str(), NULL, &hints, &res)) != 0)
     {
-        //cerr << "getaddrinfo: "<< gai_strerror(status) << endl;
         return output;
     }
 
@@ -163,7 +156,7 @@ int socket_connect(const string &ip_address, int port)
         if (numsec <= MAXSLEEP / 2)
             sleep(numsec);
     }
-    throw std::runtime_error("Cannot connect for ip = " + ip_address + "\nerrno code = " + strerror(errno) + "\n");
+    throw std::invalid_argument("Cannot connect for ip = " + ip_address + "\nerrno code = " + strerror(errno) + "\n");
 }
 //----------------------------------------------------------------------
 void download(const string &url)
@@ -193,15 +186,22 @@ void download(const string &url)
         request << "GET " << path << " HTTP/1.1\r\n";
         request << "Host: " << domain << "\r\n\r\n";
 
-        std::cout << "path  = " << path << std::endl;
-        std::cout << "host (domain)  = " << domain << std::endl
-                  << std::endl;
-        std::cout << "request  = " << request.str() << std::endl;
-
-        for (int i = 0, r = 0, ix = ip_addresses.size(); i < ix && r == 0; i++)
+        int64_t readData = 0;
+        for (int i = 0, ix = ip_addresses.size(); i < ix && readData == 0; i++)
         {
-            r = http_get(request.str(), ip_addresses[i], port, filename);
+            try
+            {
+                readData = http_get(request.str(), ip_addresses[i], port, filename);
+            }
+            catch (const std::invalid_argument &ex)
+            {
+                std::cerr << ex.what() << std::endl;
+            }
         }
+    }
+    else
+    {
+        throw std::runtime_error("Cannot find IP addr for domain = " + domain + "\n");
     }
 }
 
@@ -214,10 +214,9 @@ string header_value(const string &full_header, const string &header_name)
     {
         size_t begin = full_header.find_first_not_of(": ", pos + header_name.length());
         size_t until = full_header.find_first_of("\r\n\t ", begin + 1);
+
         if (begin != string::npos && until != string::npos)
-        {
             r = full_header.substr(begin, until - begin);
-        }
     }
     else
     {
@@ -247,8 +246,6 @@ int64_t http_get(const string &request, const string &ip_address, int port, cons
     {
         if (state < static_cast<int>(sizeof(delim) - 1)) //read header
         {
-            std::cout << "lolooolo \n";
-            std::cout << "bytes_received = " << bytes_received << std::endl;
             int i = 0;
             for (; i < bytes_received && state < static_cast<int>(sizeof(delim) - 1); i++)
             {
@@ -257,8 +254,6 @@ int64_t http_get(const string &request, const string &ip_address, int port, cons
             }
             bytes_received = state == sizeof(delim) - 1 ? bytes_received - i : bytes_received;
 
-            std::cout << "bytes_received = " << bytes_received << std::endl;
-            std::cout << "header = " << header.str() << std::endl;
             if (!isAnswerOk(header.str()))
             {
                 close(sd);
@@ -268,7 +263,6 @@ int64_t http_get(const string &request, const string &ip_address, int port, cons
         }
         if (bytes_expected == -1 && state == sizeof(delim) - 1) //parse header
         {
-            std::cout << "lolooolo2 \n";
             try
             {
                 stringstream(header_value(header.str(), "Content-Length")) >> bytes_expected;

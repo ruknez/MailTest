@@ -4,7 +4,6 @@
 #include <string>
 #include <tuple>
 
-
 /*!
     \brief Делает тоже что и DNS сервер
    
